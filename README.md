@@ -4,77 +4,145 @@ Sistema web inmobiliario desarrollado con arquitectura full stack para la gesti�
 El proyecto está organizado en dos módulos principales dentro de una sola carpeta raíz:
 
 InmobiliariaCabrejo
+
 ├── property-service    (Backend - Spring Boot + JWT + Refresh Tokens)
+
 └── property-frontend   (Frontend - React + Vite)
+
 
 Estructura del backend (resumen):
 
 common
+
 ├── exception
+
 │   ├── ApiErrorResponse.java
+
 │   ├── GlobalExceptionHandler.java
+
 │   └── ResourceNotFoundException.java
+
 └── security
+
     ├── AuthResponse.java
+
     ├── CustomAccessDeniedHandler.java
+    
     ├── CustomAuthenticationEntryPoint.java
+    
     ├── JwtAuthenticationFilter.java
+    
     ├── JwtService.java
+    
     ├── RefreshRequest.java
+    
     ├── SecurityBeansConfig.java
+    
     └── SecurityConfig.java
+    
 
 service
+
+
 ├── api
+
 │   ├── controller
+
 │   │   └── PropertyController.java
+
 │   ├── dto
+
 │   │   ├── request
+
 │   │   │   ├── PropertyCreateRequestDTO.java
+
 │   │   │   └── PropertyImageRequestDTO.java
+
 │   │   └── response
+
 │   │       ├── ApiResponse.java
+
 │   │       ├── PageMeta.java
+
 │   │       ├── PropertyImageResponseDTO.java
+
 │   │       └── PropertyResponseDTO.java
+
 │   └── mapper
+
 │       └── PropertyMapper.java
+
 ├── application
+
 │   └── service
+
 │       ├── PropertyService.java
+
 │       ├── CustomerService.java
+
 │       ├── CustomUserDetailsService.java
+
 │       └── RefreshTokenService.java
+
 ├── domain
+
 │   ├── entity
+
 │   │   ├── Property.java
+
 │   │   ├── PropertyImage.java
+
 │   │   ├── Customer.java
+
 │   │   ├── User.java
+
 │   │   └── RefreshToken.java
+
 │   └── enums
+
 │       ├── OperationType.java
+
 │       ├── PropertyType.java
+
 │       └── RoleType.java
+
 └── infrastructure
+
     ├── config
+    
     │   └── CorsConfig.java
+    
     ├── repository
+    
     │   ├── PropertyRepository.java
+    
     │   ├── PropertyImageRepository.java
+    
     │   ├── UserRepository.java
+    
+    
     │   ├── CustomerRepository.java
     │   └── RefreshTokenRepository.java
+    
     └── specification
+    
         └── PropertySpecifications.java
+        
 
 user_service
+
 ├── api
+
 │   ├── controller
+
 │   │   └── AuthController.java
+
 │   └── dto
+
 │       ├── LoginRequest.java
+
 │       └── RegisterRequest.java
+
 
 ## Tecnologías Utilizadas
 **Backend**: Java 17, Spring Boot, Spring Security (JWT + Refresh Tokens), Spring Data JPA, PostgreSQL (Supabase), HikariCP, Maven  
