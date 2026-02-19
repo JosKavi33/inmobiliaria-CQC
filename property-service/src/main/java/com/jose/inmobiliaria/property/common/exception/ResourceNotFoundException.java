@@ -1,4 +1,4 @@
-package com.jose.inmobiliaria.property.service.api.exception;
+package com.jose.inmobiliaria.property.common.exception;
 
 public class ResourceNotFoundException extends RuntimeException {
 

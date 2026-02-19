@@ -1,4 +1,4 @@
-package com.jose.inmobiliaria.property.service.api.mapper;
+package com.jose.inmobiliaria.property.common.mapper;
 
 import com.jose.inmobiliaria.property.service.api.dto.request.PropertyCreateRequestDTO;
 import com.jose.inmobiliaria.property.service.api.dto.request.PropertyImageRequestDTO;

@@ -1,6 +1,6 @@
 package com.jose.inmobiliaria.property.service.application.service;
 
-import com.jose.inmobiliaria.property.service.api.exception.ResourceNotFoundException;
+import com.jose.inmobiliaria.property.common.exception.ResourceNotFoundException;
 import com.jose.inmobiliaria.property.service.domain.entity.Property;
 import com.jose.inmobiliaria.property.service.domain.entity.PropertyImage;
 import com.jose.inmobiliaria.property.service.domain.enums.OperationType;
@@ -185,6 +185,48 @@ public class PropertyService {
 
 
         return propertyRepository.findAll(spec, pageable);
+    }
+
+    public List<Property> searchAllProperties(
+            PropertyType propertyType,
+            OperationType operationType,
+            String city,
+            String department,
+            Double minPrice,
+            Double maxPrice,
+            Integer bedrooms,
+            Integer bathrooms,
+            String sortBy,
+            String direction
+    ) {
+
+        // Validaciones
+        if (minPrice != null && maxPrice != null && minPrice > maxPrice) {
+            throw new IllegalArgumentException("minPrice cannot be greater than maxPrice");
+        }
+
+        String safeSort = switch (sortBy) {
+            case "price", "bedrooms", "bathrooms" -> sortBy;
+            default -> "price";
+        };
+
+        Sort sort = "desc".equalsIgnoreCase(direction)
+                ? Sort.by(safeSort).descending().and(Sort.by("id").descending())
+                : Sort.by(safeSort).ascending().and(Sort.by("id").ascending());
+
+        Specification<Property> spec = (root, query, cb) -> cb.conjunction();
+
+        spec = spec.and(PropertySpecifications.isActive());
+        spec = spec.and(PropertySpecifications.hasPropertyType(propertyType));
+        spec = spec.and(PropertySpecifications.hasOperationType(operationType));
+        spec = spec.and(PropertySpecifications.hasCity(city));
+        spec = spec.and(PropertySpecifications.hasDepartment(department));
+        spec = spec.and(PropertySpecifications.priceBetween(minPrice, maxPrice));
+        spec = spec.and(PropertySpecifications.minBedrooms(bedrooms));
+        spec = spec.and(PropertySpecifications.minBathrooms(bathrooms));
+
+
+        return propertyRepository.findAll(spec, sort);
     }
 }
 

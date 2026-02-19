@@ -1,0 +1,26 @@
+# ===============================
+# POSTGRESQL - SUPABASE
+# ===============================
+spring:
+  datasource:
+    url: jdbc:postgresql://aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require
+    username: postgres.kxyushotafmxiygjimvl
+    password: ._OnePiE#3_GoT.
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 30000
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+server:
+  port: 8083
+
+logging:
+  level:
+    org.hibernate.SQL: OFF
+    org.hibernate.type.descriptor.sql: OFF
