@@ -7,8 +7,18 @@ property-service/*.log
 property-service/.idea/
 property-service/*.iml
 
+
+# ==========================
+# Configuración sensible
+# ==========================
+# Application properties y YAML con credenciales
+**/application.properties
+**/application.yml
 # Archivos sensibles
 property-service/src/main/resources/application-local.properties
+# Environment variables
+.env
+
 
 # =========================
 # FRONTEND (Vite / React)

@@ -34,21 +34,26 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/auth/**").permitAll() // login, register, refresh
+                        .requestMatchers("/properties", "/properties/*").permitAll() // GET público
+                        .requestMatchers("/properties/**").hasRole("ADMIN") // POST, PUT, DELETE requieren ADMIN
                         .anyRequest().authenticated()
                 )
+
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(authenticationEntryPoint) // 401
-                        .accessDeniedHandler(accessDeniedHandler)           // 403
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler)
                 )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
         System.out.println("🔥 SECURITY CONFIG ACTIVO 🔥");
 
         return http.build();
     }
+
 
     @Bean
     public AuthenticationManager authenticationManager(

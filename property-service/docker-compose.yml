@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./property-service
+      dockerfile: Dockerfile
+    ports:
+      - "8083:8083"
+    environment:
+      # Variables de entorno para tu yml
+      SPRING_DATASOURCE_URL: jdbc:postgresql://aws-0-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require
+      SPRING_DATASOURCE_USERNAME: postgres.kxyushotafmxiygjimvl
+      SPRING_DATASOURCE_PASSWORD: ._OnePiE#3_GoT.
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: false

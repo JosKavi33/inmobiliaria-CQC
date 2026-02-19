@@ -38,7 +38,6 @@ public class PropertyController {
     /* ===============================
        GET (PAGINADO O COMPLETO)
     =============================== */
-    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @GetMapping
     public ResponseEntity<ApiResponse<?>> searchProperties(
             @RequestParam(required = false) PropertyType propertyType,
@@ -106,7 +105,6 @@ public class PropertyController {
     /* ===============================
        GET BY ID
     =============================== */
-    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<PropertyResponseDTO>> getById(@PathVariable Long id) {
 
