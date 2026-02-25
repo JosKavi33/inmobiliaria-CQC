@@ -307,5 +307,7 @@ inmobiliaria-backend:1.0.0
 ------------------------------------------------------------
 
 Jose Alberto Cabrejo Villar
+
 Técnico en Desarrollo de Software
+
 Proyecto Full Stack con enfoque profesional y escalable.
