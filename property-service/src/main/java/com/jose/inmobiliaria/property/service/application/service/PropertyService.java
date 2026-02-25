@@ -5,56 +5,72 @@ import com.jose.inmobiliaria.property.service.domain.entity.Property;
 import com.jose.inmobiliaria.property.service.domain.entity.PropertyImage;
 import com.jose.inmobiliaria.property.service.domain.enums.OperationType;
 import com.jose.inmobiliaria.property.service.domain.enums.PropertyType;
+import com.jose.inmobiliaria.property.service.infrastructure.repository.PropertyImageRepository;
 import com.jose.inmobiliaria.property.service.infrastructure.repository.PropertyRepository;
 import com.jose.inmobiliaria.property.service.infrastructure.specification.PropertySpecifications;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
+@Transactional
 public class PropertyService {
 
     private final PropertyRepository propertyRepository;
+    private final ImageService imageService;
+    private final PropertyImageRepository propertyImageRepository;
 
-    public PropertyService(PropertyRepository propertyRepository) {
+    public PropertyService(PropertyRepository propertyRepository,
+                           ImageService imageService, PropertyImageRepository propertyImageRepository) {
         this.propertyRepository = propertyRepository;
+        this.imageService = imageService;
+        this.propertyImageRepository = propertyImageRepository;
     }
 
     /* ===============================
-       READ
+       GET BY ID (CON SIGNED URL)
     =============================== */
 
-    public List<Property> findAll() {
-        return propertyRepository.findAll();
-    }
+    @Transactional(readOnly = true)
+    public Property getPropertyWithSignedUrls(Long id) {
 
-    public Property findByIdOrThrow(Long id) {
-        return propertyRepository.findById(id)
+        Property property = propertyRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Property with id " + id + " not found"
                         )
                 );
+
+        generateSignedUrlsSafely(property);
+
+        return property;
     }
 
     /* ===============================
        CREATE
     =============================== */
 
+    @Transactional
     public Property create(Property property) {
 
-        // Validación básica de imágenes
-        if (property.getImages() != null && property.getImages().size() > 10) {
-            throw new IllegalArgumentException("A property can have a maximum of 10 images");
-        }
+        log.info("Creating property: title={}", property.getTitle());
 
-        // Setear relación bidireccional + posición
         if (property.getImages() != null) {
+
+            if (property.getImages().size() > 10) {
+                throw new IllegalArgumentException(
+                        "A property can have a maximum of 10 images"
+                );
+            }
+
             int position = 0;
             for (PropertyImage image : property.getImages()) {
                 image.setProperty(property);
@@ -62,20 +78,59 @@ public class PropertyService {
             }
         }
 
-        return propertyRepository.save(property);
+        Property saved = propertyRepository.save(property);
+
+        log.info("Property created successfully with id={}", saved.getId());
+
+        return saved;
     }
 
+    /* ===============================
+       ADD IMAGE
+    =============================== */
+
+    @Transactional
+    public void addImageToProperty(Long propertyId, String filePath) {
+
+        Property property = propertyRepository.findById(propertyId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Property with id " + propertyId + " not found"
+                        )
+                );
+
+        if (property.getImages().size() >= 10) {
+            throw new IllegalArgumentException(
+                    "A property can have a maximum of 10 images"
+            );
+        }
+
+        PropertyImage image = new PropertyImage();
+        image.setImagePath(filePath);
+        image.setPosition(property.getImages().size());
+        image.setProperty(property);
+
+        property.getImages().add(image);
+
+        propertyRepository.save(property);
+    }
 
     /* ===============================
        UPDATE
     =============================== */
 
+    @Transactional
     public Property update(Long id, Property updated) {
-        Property existing = findByIdOrThrow(id);
 
-        // ===============================
-        // ACTUALIZAR DATOS GENERALES
-        // ===============================
+        log.info("Updating property id={}", id);
+
+        Property existing = propertyRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Property with id " + id + " not found"
+                        )
+                );
+
         existing.setTitle(updated.getTitle());
         existing.setPrice(updated.getPrice());
         existing.setPropertyType(updated.getPropertyType());
@@ -96,43 +151,79 @@ public class PropertyService {
         existing.setLotArea(updated.getLotArea());
         existing.setBuiltArea(updated.getBuiltArea());
 
-        // ===============================
-        // ACTUALIZAR IMÁGENES
-        // ===============================
-        if (updated.getImages() != null) {
-            if (updated.getImages().size() > 10) {
-                throw new IllegalArgumentException("A property can have a maximum of 10 images");
-            }
-
-            // Limpiar imágenes existentes
-            existing.getImages().clear();
-
-            // Setear nueva lista con posición y relación
-            int position = 0;
-            for (PropertyImage image : updated.getImages()) {
-                image.setProperty(existing);
-                image.setPosition(position++);
-                existing.getImages().add(image);
-            }
-        }
+        log.info("Updating property id={}", id);
 
         return propertyRepository.save(existing);
     }
-
 
     /* ===============================
        DELETE
     =============================== */
 
+    @Transactional
     public void deleteById(Long id) {
-        Property property = findByIdOrThrow(id);
+
+        log.info("Deleting property id={}", id);
+
+        Property property = propertyRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Property with id " + id + " not found"
+                        )
+                );
+
+        if (property.getImages() != null) {
+            property.getImages().forEach(image -> {
+                if (image.getImagePath() != null) {
+                    try {
+                        imageService.delete(image.getImagePath());
+                    } catch (Exception ignored) {
+                    }
+                }
+            });
+        }
+
         propertyRepository.delete(property);
+        log.info("Property deleted successfully id={}", id);
     }
 
     /* ===============================
-       SEARCH + PAGINATION
+       IMAGE DELETE
     =============================== */
 
+    @Transactional
+    public void deleteImage(Long imageId) {
+
+        PropertyImage image = propertyImageRepository.findById(imageId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Image not found")
+                );
+
+        Long propertyId = image.getProperty().getId();
+
+        if (image.getImagePath() != null) {
+            try {
+                imageService.delete(image.getImagePath());
+            } catch (Exception ignored) {
+            }
+        }
+
+        propertyImageRepository.delete(image);
+
+        List<PropertyImage> images =
+                propertyImageRepository.findByPropertyIdOrderByPositionAsc(propertyId);
+
+        int position = 0;
+        for (PropertyImage img : images) {
+            img.setPosition(position++);
+        }
+    }
+
+    /* ===============================
+       SEARCH PAGINADO
+    =============================== */
+
+    @Transactional(readOnly = true)
     public Page<Property> searchProperties(
             PropertyType propertyType,
             OperationType operationType,
@@ -148,45 +239,39 @@ public class PropertyService {
             String direction
     ) {
 
-        // Validaciones
-        if (minPrice != null && maxPrice != null && minPrice > maxPrice) {
-            throw new IllegalArgumentException("minPrice cannot be greater than maxPrice");
-        }
-
-        if (page < 0) {
-            throw new IllegalArgumentException("page must be >= 0");
-        }
-
-        if (size <= 0 || size > 50) {
-            throw new IllegalArgumentException("size must be between 1 and 50");
-        }
-
         String safeSort = switch (sortBy) {
-            case "price", "bedrooms", "bathrooms" -> sortBy;
-            default -> "price";
+            case "price", "bedrooms", "bathrooms", "id" -> sortBy;
+            default -> "id";
         };
 
         Sort sort = "desc".equalsIgnoreCase(direction)
-                ? Sort.by(safeSort).descending().and(Sort.by("id").descending())
-                : Sort.by(safeSort).ascending().and(Sort.by("id").ascending());
+                ? Sort.by(safeSort).descending()
+                : Sort.by(safeSort).ascending();
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Specification<Property> spec = (root, query, cb) -> cb.conjunction();
+        Specification<Property> spec =
+                PropertySpecifications.isActive()
+                        .and(PropertySpecifications.hasPropertyType(propertyType))
+                        .and(PropertySpecifications.hasOperationType(operationType))
+                        .and(PropertySpecifications.hasCity(city))
+                        .and(PropertySpecifications.hasDepartment(department))
+                        .and(PropertySpecifications.priceBetween(minPrice, maxPrice))
+                        .and(PropertySpecifications.minBedrooms(bedrooms))
+                        .and(PropertySpecifications.minBathrooms(bathrooms));
 
-        spec = spec.and(PropertySpecifications.isActive());
-        spec = spec.and(PropertySpecifications.hasPropertyType(propertyType));
-        spec = spec.and(PropertySpecifications.hasOperationType(operationType));
-        spec = spec.and(PropertySpecifications.hasCity(city));
-        spec = spec.and(PropertySpecifications.hasDepartment(department));
-        spec = spec.and(PropertySpecifications.priceBetween(minPrice, maxPrice));
-        spec = spec.and(PropertySpecifications.minBedrooms(bedrooms));
-        spec = spec.and(PropertySpecifications.minBathrooms(bathrooms));
+        Page<Property> result = propertyRepository.findAll(spec, pageable);
 
+        result.forEach(this::generateSignedUrlsSafely);
 
-        return propertyRepository.findAll(spec, pageable);
+        return result;
     }
 
+    /* ===============================
+       SEARCH SIN PAGINAR
+    =============================== */
+
+    @Transactional(readOnly = true)
     public List<Property> searchAllProperties(
             PropertyType propertyType,
             OperationType operationType,
@@ -200,33 +285,57 @@ public class PropertyService {
             String direction
     ) {
 
-        // Validaciones
-        if (minPrice != null && maxPrice != null && minPrice > maxPrice) {
-            throw new IllegalArgumentException("minPrice cannot be greater than maxPrice");
-        }
+        log.debug("Searching properties with filters...");
 
         String safeSort = switch (sortBy) {
-            case "price", "bedrooms", "bathrooms" -> sortBy;
-            default -> "price";
+            case "price", "bedrooms", "bathrooms", "id" -> sortBy;
+            default -> "id";
         };
 
         Sort sort = "desc".equalsIgnoreCase(direction)
-                ? Sort.by(safeSort).descending().and(Sort.by("id").descending())
-                : Sort.by(safeSort).ascending().and(Sort.by("id").ascending());
+                ? Sort.by(safeSort).descending()
+                : Sort.by(safeSort).ascending();
 
-        Specification<Property> spec = (root, query, cb) -> cb.conjunction();
+        Specification<Property> spec =
+                PropertySpecifications.isActive()
+                        .and(PropertySpecifications.hasPropertyType(propertyType))
+                        .and(PropertySpecifications.hasOperationType(operationType))
+                        .and(PropertySpecifications.hasCity(city))
+                        .and(PropertySpecifications.hasDepartment(department))
+                        .and(PropertySpecifications.priceBetween(minPrice, maxPrice))
+                        .and(PropertySpecifications.minBedrooms(bedrooms))
+                        .and(PropertySpecifications.minBathrooms(bathrooms));
 
-        spec = spec.and(PropertySpecifications.isActive());
-        spec = spec.and(PropertySpecifications.hasPropertyType(propertyType));
-        spec = spec.and(PropertySpecifications.hasOperationType(operationType));
-        spec = spec.and(PropertySpecifications.hasCity(city));
-        spec = spec.and(PropertySpecifications.hasDepartment(department));
-        spec = spec.and(PropertySpecifications.priceBetween(minPrice, maxPrice));
-        spec = spec.and(PropertySpecifications.minBedrooms(bedrooms));
-        spec = spec.and(PropertySpecifications.minBathrooms(bathrooms));
+        List<Property> properties = propertyRepository.findAll(spec, sort);
 
+        properties.forEach(this::generateSignedUrlsSafely);
 
-        return propertyRepository.findAll(spec, sort);
+        log.info("Properties found: {}", properties.size());
+
+        return properties;
+    }
+
+    /* ===============================
+       PRIVATE
+    =============================== */
+
+    private void generateSignedUrlsSafely(Property property) {
+
+        if (property.getImages() == null) return;
+
+        for (PropertyImage image : property.getImages()) {
+
+            if (image.getImagePath() == null) continue;
+
+            try {
+                String signedUrl =
+                        imageService.generateSignedUrl(image.getImagePath());
+
+                image.setImagePath(signedUrl);
+
+            } catch (Exception ignored) {
+                // Si falla, no rompemos el GET
+            }
+        }
     }
 }
-

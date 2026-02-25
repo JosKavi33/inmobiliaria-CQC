@@ -1,201 +1,311 @@
 # 🏠 Inmobiliaria Cabrejo
 
-Sistema web inmobiliario desarrollado con arquitectura full stack para la gestión de propiedades y usuarios, incluyendo autenticación con JWT y refresh tokens. Permite realizar operaciones completas de: Crear propiedades, Editar propiedades, Eliminar propiedades, Listar propiedades, Filtrar resultados, Paginación, Visualización detallada con galería de imágenes, Registro y login de usuarios, Autenticación segura con JWT, Refresh tokens para mantener sesión activa, Logout y revocación de tokens.
+Sistema web inmobiliario full stack para la gestión de propiedades y usuarios.
+Arquitectura desacoplada (Frontend + Backend).
+Autenticación con JWT + Refresh Tokens.
+Manejo profesional de imágenes con Supabase Storage y Signed URLs.
+Despliegue con Docker.
 
-El proyecto está organizado en dos módulos principales dentro de una sola carpeta raíz:
+------------------------------------------------------------
+📌 ARQUITECTURA DEL PROYECTO
+------------------------------------------------------------
 
-El proyecto está organizado en dos módulos principales dentro de una sola carpeta raíz:
-
-```java
+```
 InmobiliariaCabrejo
-├── property-service (Backend - Spring Boot + JWT + Refresh Tokens)
-└── property-frontend (Frontend - React + Vite)
+├── property-service      (Backend - Spring Boot)
+├── property-frontend     (Frontend - React + Vite)
+└── docker-compose.yml    (Orquestación con Docker)
 ```
 
-Estructura del backend (resumen):
+------------------------------------------------------------
+🛠 TECNOLOGÍAS UTILIZADAS
+------------------------------------------------------------
 
-```java
-common
-├── exception
-│   ├── ApiErrorResponse.java
-│   ├── GlobalExceptionHandler.java
-│   └── ResourceNotFoundException.java
-└── security
-    ├── AuthResponse.java
-    ├── CustomAccessDeniedHandler.java
-    ├── CustomAuthenticationEntryPoint.java
-    ├── JwtAuthenticationFilter.java
-    ├── JwtService.java
-    ├── RefreshRequest.java
-    ├── SecurityBeansConfig.java
-    └── SecurityConfig.java
+Backend:
 
-service
-├── api
-│   ├── controller
-│   │   └── PropertyController.java
-│   ├── dto
-│   │   ├── request
-│   │   │   ├── PropertyCreateRequestDTO.java
-│   │   │   └── PropertyImageRequestDTO.java
-│   │   └── response
-│   │       ├── ApiResponse.java
-│   │       ├── PageMeta.java
-│   │       ├── PropertyImageResponseDTO.java
-│   │       └── PropertyResponseDTO.java
-│   └── mapper
-│       └── PropertyMapper.java
-├── application
-│   └── service
-│       ├── PropertyService.java
-│       ├── CustomerService.java
-│       ├── CustomUserDetailsService.java
-│       └── RefreshTokenService.java
-├── domain
-│   ├── entity
-│   │   ├── Property.java
-│   │   ├── PropertyImage.java
-│   │   ├── Customer.java
-│   │   ├── User.java
-│   │   └── RefreshToken.java
-│   └── enums
-│       ├── OperationType.java
-│       ├── PropertyType.java
-│       └── RoleType.java
-└── infrastructure
-    ├── config
-    │   └── CorsConfig.java
-    ├── repository
-    │   ├── PropertyRepository.java
-    │   ├── PropertyImageRepository.java
-    │   ├── UserRepository.java
-    │   ├── CustomerRepository.java
-    │   └── RefreshTokenRepository.java
-    └── specification
-        └── PropertySpecifications.java
+- Java 17
+- Spring Boot
+- Spring Security (JWT + Refresh Tokens)
+- Spring Data JPA
+- PostgreSQL (Supabase)
+- Supabase Storage
+- Maven
+- Docker
 
-user_service
-├── api
-│   ├── controller
-│   │   └── AuthController.java
-│   └── dto
-│       ├── LoginRequest.java
-│       └── RegisterRequest.java
+Frontend:
+
+- React
+- Vite
+- Axios
+- CSS Grid
+
+------------------------------------------------------------
+🖼 MANEJO DE IMÁGENES
+------------------------------------------------------------
+
+Las imágenes se almacenan en Supabase Storage.
+
+Bucket utilizado:
+property-images
+
+Flujo de trabajo:
+
+1. El backend sube la imagen al bucket.
+2. En la base de datos se guarda únicamente el imagePath.
+3. Cuando se consultan propiedades, el backend genera Signed URLs.
+4. El frontend recibe la URL firmada y la utiliza para mostrar la imagen.
+5. Las URLs son temporales por seguridad.
+6. Las imágenes pueden:
+    - Subirse individualmente
+    - Eliminarse individualmente
+    - Eliminarse junto con la propiedad
+    - Reordenarse mediante el campo "position"
+
+------------------------------------------------------------
+🔐 VARIABLES DE ENTORNO (OBLIGATORIAS)
+------------------------------------------------------------
+
+Para trabajar en local debes configurar variables de entorno.
+
+El proyecto NO contiene credenciales hardcodeadas.
+
+Variables requeridas:
+
+```
+SPRING_DATASOURCE_URL
+SPRING_DATASOURCE_USERNAME
+SPRING_DATASOURCE_PASSWORD
+
+SUPABASE_URL
+SUPABASE_SERVICE_ROLE
+SUPABASE_BUCKET
+
+ADMIN_EMAIL
+ADMIN_PASSWORD
+CREATE_DEFAULT_ADMIN
 ```
 
-## Tecnologías Utilizadas
+------------------------------------------------------------
+📄 EJEMPLO DE ARCHIVO .env
+------------------------------------------------------------
 
-**Backend:** Java 17, Spring Boot, Spring Security (JWT + Refresh Tokens), Spring Data JPA, PostgreSQL (Supabase), HikariCP, Maven, Docker
-
-**Frontend:** React, Vite, Axios, CSS Grid, Modales personalizados
-
-## Base de Datos
-
-Se requiere configurar las credenciales en el backend usando application.yml:
-
-```yml
-spring:
-  datasource:
-    url: ${SPRING_DATASOURCE_URL}
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
-    driver-class-name: org.postgresql.Driver
-    hikari:
-      maximum-pool-size: 5
-      minimum-idle: 1
-      connection-timeout: 30000
-  jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    hibernate:
-      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
-    show-sql: ${SPRING_JPA_SHOW_SQL}
-server:
-  port: 8083
-logging:
-  level:
-    org.hibernate.SQL: OFF
-    org.hibernate.type.descriptor.sql: OFF
-
-## Base de Datos
-Se requiere configurar las credenciales en el backend usando `application.yml`:
-
-spring:
-  datasource:
-    url: jdbc:postgresql://<HOST>:5432/<DB_NAME>?sslmode=require
-    username: <DB_USER>
-    password: <DB_PASSWORD>
-    driver-class-name: org.postgresql.Driver
-    hikari:
-      maximum-pool-size: 5
-      minimum-idle: 1
-      connection-timeout: 30000
-  jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    hibernate:
-      ddl-auto: update
-    show-sql: false
-
-server:
-  port: 8083
-
-logging:
-  level:
-    org.hibernate.SQL: OFF
-    org.hibernate.type.descriptor.sql: OFF
 ```
-
-## Archivo .env Recomendado
-
-```yml
-SPRING_DATASOURCE_URL=jdbc:postgresql://YOUR_HOST:5432/YOUR_DATABASE?sslmode=require
+SPRING_DATASOURCE_URL=jdbc:postgresql://HOST:5432/DB?sslmode=require
 SPRING_DATASOURCE_USERNAME=YOUR_USERNAME
 SPRING_DATASOURCE_PASSWORD=YOUR_PASSWORD
-SPRING_JPA_HIBERNATE_DDL_AUTO=update
-SPRING_JPA_SHOW_SQL=false
+
+SUPABASE_URL=https://xxxxx.supabase.co
+SUPABASE_SERVICE_ROLE=YOUR_SERVICE_ROLE_KEY
+SUPABASE_BUCKET=property-images
+
+ADMIN_EMAIL=admin@inmobiliaria.com
+ADMIN_PASSWORD=Admin123*
+CREATE_DEFAULT_ADMIN=true
 ```
 
-## Cómo ejecutar el proyecto
+------------------------------------------------------------
+🐳 EJECUCIÓN CON DOCKER
+------------------------------------------------------------
 
-1️⃣ Clonar el repositorio  
-git clone https://github.com/JosKavi33/inmobiliaria-CQC.git  
-cd ProyectoInmobiliaria
+Desde la raíz del proyecto:
 
-2️⃣ Ejecutar Backend (Spring Boot)  
-cd property-service  
-mvn clean install  
-mvn spring-boot:run  
+```
+docker compose build
+```
 
-El backend quedará disponible en: http://localhost:8083
+```
+docker compose up -d
+```
 
-3️⃣ Ejecutar Frontend (React + Vite)  
-En otra terminal:  
-cd property-frontend  
-npm install  
-npm run dev  
+Backend disponible en:
 
-El frontend quedará disponible en: http://localhost:5173
+```
+http://localhost:8083
+```
 
-## Funcionalidades Implementadas
-- Listado de propiedades con paginación
-- Filtros por: Ciudad, Precio mínimo, Precio máximo
-- Modal con información detallada
-- Galería de imágenes por propiedad
-- CRUD completo desde la interfaz
-- Registro, login y logout de usuarios
-- Autenticación segura con JWT
-- Refresh tokens para mantener sesión activa
-- Revocación de tokens al cerrar sesión
-- Diseño responsive con grid adaptable
+------------------------------------------------------------
+💻 EJECUCIÓN LOCAL SIN DOCKER
+------------------------------------------------------------
 
-## Información de Propiedades
-Cada propiedad contiene información como:  
-Título, Tipo de propiedad, Tipo de operación, Precio, Ciudad y departamento, Dirección, Descripción, Habitaciones, Baños, Área del lote, Área construida, Imágenes asociadas
+Backend:
 
-## Estado del Proyecto
-Proyecto funcional con arquitectura desacoplada (frontend y backend separados). Pensado como proyecto práctico y escalable para uso profesional.  
+```
+cd property-service
+mvn clean install
+mvn spring-boot:run
+```
 
+Frontend:
 
-## Autor
-Jose Alberto Cabrejo Villar  
-Técnico en Desarrollo de Software  
-Proyecto full stack desarrollado con enfoque profesional.
+ESTADO DEL FRONTEND(despliega pero falta aplicacion de funcionalidades)
+
+El frontend se encuentra actualmente en desarrollo.
+
+```
+cd property-frontend
+npm install
+npm run dev
+```
+
+Frontend disponible en:
+
+```
+http://localhost:5173
+```
+
+------------------------------------------------------------
+📡 ENDPOINTS PRINCIPALES
+------------------------------------------------------------
+
+PROPIEDADES
+
+```
+GET /properties
+```
+
+```
+GET /properties/{id}
+```
+
+```JSON
+POST /properties
+
+{
+  "title": "Apartamento moderno en Cabecera",
+  "price": 450000000,
+  "administrationFee": 350000,
+  "propertyType": "APARTMENT",
+  "operationType": "SALE",
+  "address": "Carrera 35 #48-120",
+  "city": "Bucaramanga",
+  "department": "Santander",
+  "neighborhood": "Cabecera",
+  "propertyDescription": "Apartamento amplio con excelente iluminación natural.",
+  "locationDescription": "Ubicado cerca a centros comerciales y parques.",
+  "bedrooms": 3,
+  "bathrooms": 2,
+  "parkingSpaces": 1,
+  "lotArea": 0,
+  "builtArea": 95
+}
+```
+
+```
+PUT /properties/{id}
+```
+
+```
+DELETE /properties/{id}
+```
+
+IMÁGENES
+
+```
+POST /properties/{id}/images
+
+form-data -> Key | file  (FILE) | VALUE (Seleccionar imagen del equipo)
+```
+
+```
+DELETE /properties/images/{imageId}
+```
+
+AUTENTICACIÓN
+
+```JSON
+Registro /auth/register
+
+{
+  "email": "nuevo@test.com",
+  "password": "123456",
+  "firstName": "Jose",
+  "lastName": "Cabrejo",
+  "documentNumber": "123456789",
+  "phone": "3000000000",
+  "address": "Bucaramanga"
+}
+```
+
+```JSON
+Login /auth/login
+
+{
+  "email": "admin@inmobiliaria.com",
+  "password": "Admin123*"
+}
+```
+
+```
+Refresh Token /auth/refresh
+```
+
+```JSON
+Logout (revocación de tokens) /auth/logout
+
+{
+  "refreshToken": "EL_REFRESH_TOKEN_AQUI"
+}
+```
+
+------------------------------------------------------------
+📊 FUNCIONALIDADES IMPLEMENTADAS
+------------------------------------------------------------
+
+- CRUD completo de propiedades
+- Gestión de imágenes con Supabase
+- Signed URLs automáticas
+- Eliminación de imágenes en bucket
+- Eliminación en cascada
+- Reordenamiento de imágenes
+- Filtros avanzados
+- Paginación
+- Seguridad con JWT
+- Refresh tokens
+- Protección por roles (ADMIN)
+- Inicialización automática de administrador
+- Arquitectura limpia por capas
+- Manejo profesional de errores
+- Logs estructurados con SLF4J
+
+------------------------------------------------------------
+🏗 ARQUITECTURA INTERNA
+------------------------------------------------------------
+
+Capas del backend:
+
+- api
+- application
+- domain
+- infrastructure
+- common
+
+Patrones aplicados:
+
+- DTO + Mapper
+- Specification Pattern
+- CascadeType.ALL
+- OrphanRemoval
+- Signed URL Strategy
+- Separación por responsabilidades
+
+------------------------------------------------------------
+📦 VERSIONAMIENTO
+------------------------------------------------------------
+
+Recomendado usar versionado semántico:
+
+Ejemplo:
+
+v1.0.0
+
+Si se usa Docker, también versionar imágenes:
+
+inmobiliaria-backend:1.0.0
+
+------------------------------------------------------------
+👨‍💻 AUTOR
+------------------------------------------------------------
+
+Jose Alberto Cabrejo Villar
+Técnico en Desarrollo de Software
+Proyecto Full Stack con enfoque profesional y escalable.

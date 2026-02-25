@@ -12,8 +12,7 @@ property-service/*.iml
 # Configuración sensible
 # ==========================
 # Application properties y YAML con credenciales
-**/application.properties
-**/application.yml
+**/application-local.yml
 # Archivos sensibles
 property-service/src/main/resources/application-local.properties
 # Environment variables
@@ -28,7 +27,9 @@ property-frontend/dist/
 property-frontend/.vite/
 property-frontend/.idea/
 
+# =========================
 # Logs
+# =========================
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

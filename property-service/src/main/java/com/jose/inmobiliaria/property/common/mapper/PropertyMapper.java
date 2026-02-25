@@ -48,7 +48,7 @@ public class PropertyMapper {
             List<PropertyImage> images = new ArrayList<>();
             for (PropertyImageRequestDTO imageDto : dto.getImages()) {
                 PropertyImage image = new PropertyImage();
-                image.setImageUrl(imageDto.getImageUrl());
+                image.setImagePath(imageDto.getImageUrl());
                 // NO setear posición ni property aquí
                 images.add(image);
             }
@@ -92,7 +92,7 @@ public class PropertyMapper {
             for (PropertyImage image : property.getImages()) {
                 PropertyImageResponseDTO imageDto = new PropertyImageResponseDTO();
                 imageDto.setId(image.getId());
-                imageDto.setImageUrl(image.getImageUrl());
+                imageDto.setImageUrl(image.getImagePath());
                 imageDto.setPosition(image.getPosition());
                 images.add(imageDto);
             }

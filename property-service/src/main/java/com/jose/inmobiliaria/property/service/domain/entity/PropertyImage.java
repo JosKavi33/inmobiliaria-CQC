@@ -1,5 +1,6 @@
 package com.jose.inmobiliaria.property.service.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -31,7 +32,7 @@ public class PropertyImage {
 
     @NotBlank(message = "Image URL is required")
     @Column(nullable = false, length = 500)
-    private String imageUrl;
+    private String imagePath;
 
     @NotNull
     @PositiveOrZero
@@ -44,6 +45,7 @@ public class PropertyImage {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "property_id", nullable = false)
+    @JsonIgnore
     private Property property;
 
     /* ===============================
@@ -65,12 +67,12 @@ public class PropertyImage {
         this.id = id;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public String getImagePath() {
+        return imagePath;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
     }
 
     public Integer getPosition() {
