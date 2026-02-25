@@ -1,175 +1,267 @@
-# 🏠 Inmobiliaria Cabrejo
+# 🏠 INMOBILIARIA-CQC
 
-Sistema web inmobiliario full stack para la gestión de propiedades y usuarios.
-Arquitectura desacoplada (Frontend + Backend).
-Autenticación con JWT + Refresh Tokens.
-Manejo profesional de imágenes con Supabase Storage y Signed URLs.
-Despliegue con Docker.
+<p align="center">
+  <a href="https://github.com/JosKavi33/inmobiliaria-CQC/actions">
+    <img src="https://github.com/JosKavi33/inmobiliaria-CQC/actions/workflows/ci.yml/badge.svg"/>
+  </a>
+</p>
+Proyecto full stack profesional desarrollado con arquitectura desacoplada,
+seguridad JWT, manejo de imágenes con Supabase Storage, contenedorización con
+Docker, integración continua (CI/CD) y despliegue en la nube.
+
+* Backend: 100% funcional y desplegado.
+* Frontend: En construcción.
 
 ------------------------------------------------------------
-📌 ARQUITECTURA DEL PROYECTO
+📌 BADGE DE CI AUTOMÁTICO
 ------------------------------------------------------------
+
+El proyecto incluye Integración Continua con GitHub Actions. Este badge muestra el estado automático del pipeline:
+
+- Verde: Build exitoso
+- Rojo: Error en tests o compilación
+
+------------------------------------------------------------
+🏗️ DIAGRAMA VISUAL DE ARQUITECTURA
+------------------------------------------------------------
+
+
+Arquitectura del sistema:
 
 ```
-InmobiliariaCabrejo
-├── property-service      (Backend - Spring Boot)
-├── property-frontend     (Frontend - React + Vite)
-└── docker-compose.yml    (Orquestación con Docker)
+                     +--------------------+
+                     |      FRONTEND      |
+                     |    React + Vite    |
+                     +----------+---------+
+                                |
+                                v
+                     +--------------------+
+                     |       BACKEND      |
+                     |   Spring Boot API  |
+                     |   JWT + Refresh    |
+                     +----------+---------+
+                                |
+                                v
+                     +--------------------+
+                     |   POSTGRESQL DB    |
+                     |     (Supabase)     |
+                     +--------------------+
+                                |
+                                v
+                     +--------------------+
+                     |  SUPABASE STORAGE  |
+                     |     (Imágenes)     |
+                     +--------------------+
 ```
 
-------------------------------------------------------------
-🛠 TECNOLOGÍAS UTILIZADAS
-------------------------------------------------------------
-
-Backend:
-
-- Java 17
-- Spring Boot
-- Spring Security (JWT + Refresh Tokens)
-- Spring Data JPA
-- PostgreSQL (Supabase)
-- Supabase Storage
-- Maven
-- Docker
-
-Frontend:
-
-- React
-- Vite
-- Axios
-- CSS Grid
+Flujo:
+Usuario → Frontend → Backend → Base de Datos
+↓
+Storage de Imágenes
 
 ------------------------------------------------------------
-🖼 MANEJO DE IMÁGENES
+🏛️ ARQUITECTURA INTERNA DEL BACKEND
 ------------------------------------------------------------
 
-Las imágenes se almacenan en Supabase Storage.
+Capas:
 
-Bucket utilizado:
-property-images
+1) API Layer
+    - Controllers
+    - DTOs
+    - Mappers
 
-Flujo de trabajo:
+2) Application Layer
+    - Servicios
+    - Lógica de negocio
 
-1. El backend sube la imagen al bucket.
-2. En la base de datos se guarda únicamente el imagePath.
-3. Cuando se consultan propiedades, el backend genera Signed URLs.
-4. El frontend recibe la URL firmada y la utiliza para mostrar la imagen.
-5. Las URLs son temporales por seguridad.
-6. Las imágenes pueden:
-    - Subirse individualmente
-    - Eliminarse individualmente
-    - Eliminarse junto con la propiedad
-    - Reordenarse mediante el campo "position"
+3) Domain Layer
+    - Entidades
+    - Enums
+    - Reglas del dominio
+
+4) Infrastructure Layer
+    - Repositories
+    - Specifications
+    - Configuración
+
+Beneficios:
+
+- Bajo acoplamiento
+- Alta mantenibilidad
+- Escalable
+- Profesional
+- Listo para crecimiento empresarial
 
 ------------------------------------------------------------
-🔐 VARIABLES DE ENTORNO (OBLIGATORIAS)
+🔐 SEGURIDAD
 ------------------------------------------------------------
 
-Para trabajar en local debes configurar variables de entorno.
+- Spring Security
+- JWT Access Token
+- Refresh Token
+- Revocación de sesiones
+- Roles (ADMIN / USER)
+- Protección con @PreAuthorize
 
-El proyecto NO contiene credenciales hardcodeadas.
+Flujo:
 
-Variables requeridas:
+Login →
+Genera Access Token + Refresh Token →
+Uso del Access Token →
+Renovación con Refresh Token →
+Logout revoca tokens
+
+------------------------------------------------------------
+🖼️ MANEJO DE IMÁGENES
+------------------------------------------------------------
+
+Integración con Supabase Storage.
+
+Proceso:
+
+1) Imagen subida al backend
+2) Se almacena en el bucket
+3) Solo se guarda el path en la base de datos
+4) Al consultar:
+    - Se generan Signed URLs dinámicas
+    - Expiran automáticamente
+5) Se pueden:
+    - Agregar imágenes
+    - Eliminar imágenes individuales
+    - Reordenar imágenes
+6) Al eliminar propiedad:
+    - Se eliminan imágenes del bucket
+    - Se elimina registro en base de datos
+
+Arquitectura segura y escalable.
+
+------------------------------------------------------------
+🔄 CI/CD (DEVOPS)
+------------------------------------------------------------
+
+Implementado con GitHub Actions.
+
+Pipeline automático:
+
+1) Build con Maven
+2) Ejecución de tests
+3) Validación de compilación
+4) Construcción de imagen Docker
+5) Preparación para despliegue
+
+Beneficios:
+
+- Integración continua real
+- Prevención de errores
+- Automatización completa
+- Flujo profesional empresarial
+- Base para DevOps
+
+------------------------------------------------------------
+🐳 DOCKER
+------------------------------------------------------------
+
+Backend dockerizado con multi-stage build:
+
+Etapa 1:
+
+- Maven + JDK 17
+- Compilación
+
+Etapa 2:
+
+- Imagen ligera Eclipse Temurin 17
+- Solo el .jar final
+
+Compatible con:
+
+- Docker Compose
+- Render
+- Entornos cloud
+
+------------------------------------------------------------
+☁️ DESPLIEGUE EN PRODUCCIÓN
+------------------------------------------------------------
+
+Backend desplegado en Render.
+
+Render:
+
+- Detecta puerto automáticamente
+- Usa variable de entorno PORT
+- No requiere configuración manual
+
+URL:
+
+https://inmobiliaria-cqc.onrender.com
+
+
+------------------------------------------------------------
+⚙️ VARIABLES DE ENTORNO
+------------------------------------------------------------
+
+Se requiere archivo .env con:
 
 ```
 SPRING_DATASOURCE_URL
 SPRING_DATASOURCE_USERNAME
 SPRING_DATASOURCE_PASSWORD
-
+SPRING_JPA_HIBERNATE_DDL_AUTO
+SPRING_JPA_SHOW_SQL
 SUPABASE_URL
 SUPABASE_SERVICE_ROLE
 SUPABASE_BUCKET
-
 ADMIN_EMAIL
 ADMIN_PASSWORD
 CREATE_DEFAULT_ADMIN
 ```
 
-------------------------------------------------------------
-📄 EJEMPLO DE ARCHIVO .env
-------------------------------------------------------------
-
-```
-SPRING_DATASOURCE_URL=jdbc:postgresql://HOST:5432/DB?sslmode=require
-SPRING_DATASOURCE_USERNAME=YOUR_USERNAME
-SPRING_DATASOURCE_PASSWORD=YOUR_PASSWORD
-
-SUPABASE_URL=https://xxxxx.supabase.co
-SUPABASE_SERVICE_ROLE=YOUR_SERVICE_ROLE_KEY
-SUPABASE_BUCKET=property-images
-
-ADMIN_EMAIL=admin@inmobiliaria.com
-ADMIN_PASSWORD=Admin123*
-CREATE_DEFAULT_ADMIN=true
-```
-
-------------------------------------------------------------
-🐳 EJECUCIÓN CON DOCKER
-------------------------------------------------------------
-
-Desde la raíz del proyecto:
-
-```
-docker compose build
-```
-
-```
-docker compose up -d
-```
-
-Backend disponible en:
-
-```
-http://localhost:8083
-```
-
-------------------------------------------------------------
-💻 EJECUCIÓN LOCAL SIN DOCKER
-------------------------------------------------------------
-
-Backend:
-
-```
-cd property-service
-mvn clean install
-mvn spring-boot:run
-```
-
-Frontend:
-
-ESTADO DEL FRONTEND(despliega pero falta aplicacion de funcionalidades)
-
-El frontend se encuentra actualmente en desarrollo.
-
-```
-cd property-frontend
-npm install
-npm run dev
-```
-
-Frontend disponible en:
-
-```
-http://localhost:5173
-```
+En producción:
+Las variables deben configurarse en la plataforma cloud.
 
 ------------------------------------------------------------
 📡 ENDPOINTS PRINCIPALES
 ------------------------------------------------------------
 
-PROPIEDADES
+------------------------------------------------------------
+🏠 PROPIEDADES
+------------------------------------------------------------
 
-```
-GET /properties
+------------------------------------------------------------
+
+* **GET /properties**
+
+Descripción: Obtiene listado de propiedades.
+Soporta filtros, ordenamiento y paginación mediante query params.
+
+Ejemplo:
+
+```json
+GET /properties?page=0&size=10&sort=price&direction=asc
 ```
 
-```
-GET /properties/{id}
+------------------------------------------------------------
+
+* **GET /properties/{id}**
+
+Descripción: Obtiene el detalle de una propiedad por su ID.
+Incluye generación automática de Signed URLs para imágenes.
+
+Ejemplo:
+
+```json
+GET /properties/1
 ```
 
-```JSON
-POST /properties
+------------------------------------------------------------
 
+* **POST /properties**
+
+Descripción: Crea una nueva propiedad.
+
+Body (JSON):
+
+```json
 {
   "title": "Apartamento moderno en Cabecera",
   "price": 450000000,
@@ -188,33 +280,66 @@ POST /properties
   "lotArea": 0,
   "builtArea": 95
 }
-```
+``` 
 
-```
-PUT /properties/{id}
-```
+------------------------------------------------------------
 
-```
-DELETE /properties/{id}
-```
+* **PUT /properties/{id}**
 
-IMÁGENES
+Descripción: Actualiza una propiedad existente.
 
-```
-POST /properties/{id}/images
+Body: Mismo formato que el POST.
 
-form-data -> Key | file  (FILE) | VALUE (Seleccionar imagen del equipo)
-```
 
-```
-DELETE /properties/images/{imageId}
-```
+------------------------------------------------------------
 
-AUTENTICACIÓN
+* **DELETE /properties/{id}**
 
-```JSON
-Registro /auth/register
+Descripción: Elimina una propiedad.
 
+También elimina sus imágenes del bucket de almacenamiento.
+
+------------------------------------------------------------------
+🖼️ IMÁGENES
+
+------------------------------------------------------------
+
+* **POST /properties/{id}/images**
+
+Descripción: Sube una imagen a una propiedad.
+
+Tipo de petición:
+multipart/form-data
+
+Key: file
+Type: FILE
+Value: Seleccionar imagen desde el equipo
+
+La imagen se almacena en Supabase Storage.
+En la base de datos solo se guarda el path.
+
+
+------------------------------------------------------------
+
+* **DELETE /properties/images/{imageId}**
+
+Descripción: Elimina una imagen específica.
+
+- Se elimina del bucket.
+- Se elimina de la base de datos.
+- Se reordenan las posiciones automáticamente.
+
+------------------------------------------------------------
+🔐 AUTENTICACIÓN
+------------------------------------------------------------
+
+* **POST /auth/register**
+
+Descripción: Registro de nuevo usuario.
+
+Body (JSON):
+
+```json
 {
   "email": "nuevo@test.com",
   "password": "123456",
@@ -226,81 +351,55 @@ Registro /auth/register
 }
 ```
 
-```JSON
-Login /auth/login
+------------------------------------------------------------
 
+* **POST /auth/login**
+
+Descripción: Inicia sesión y genera:
+
+- Access Token (JWT)
+- Refresh Token
+
+Body (JSON):
+
+```json
 {
   "email": "admin@inmobiliaria.com",
   "password": "Admin123*"
 }
 ```
 
-```
-Refresh Token /auth/refresh
-```
+------------------------------------------------------------
 
-```JSON
-Logout (revocación de tokens) /auth/logout
+* **POST /auth/refresh**
 
+Descripción: Genera un nuevo Access Token usando el Refresh Token.
+
+------------------------------------------------------------
+
+* **POST /auth/logout**
+
+Descripción: Revoca el Refresh Token y cierra la sesión.
+
+Body (JSON):
+
+```json
 {
   "refreshToken": "EL_REFRESH_TOKEN_AQUI"
 }
 ```
 
 ------------------------------------------------------------
-📊 FUNCIONALIDADES IMPLEMENTADAS
+📊 ESTADO DEL PROYECTO
 ------------------------------------------------------------
 
-- CRUD completo de propiedades
-- Gestión de imágenes con Supabase
-- Signed URLs automáticas
-- Eliminación de imágenes en bucket
-- Eliminación en cascada
-- Reordenamiento de imágenes
-- Filtros avanzados
-- Paginación
-- Seguridad con JWT
-- Refresh tokens
-- Protección por roles (ADMIN)
-- Inicialización automática de administrador
-- Arquitectura limpia por capas
-- Manejo profesional de errores
-- Logs estructurados con SLF4J
-
-------------------------------------------------------------
-🏗 ARQUITECTURA INTERNA
-------------------------------------------------------------
-
-Capas del backend:
-
-- api
-- application
-- domain
-- infrastructure
-- common
-
-Patrones aplicados:
-
-- DTO + Mapper
-- Specification Pattern
-- CascadeType.ALL
-- OrphanRemoval
-- Signed URL Strategy
-- Separación por responsabilidades
-
-------------------------------------------------------------
-📦 VERSIONAMIENTO
-------------------------------------------------------------
-
-Recomendado usar versionado semántico:
-
-Ejemplo:
-
-v1.0.0
-
-Si se usa Docker, también versionar imágenes:
-
-inmobiliaria-backend:1.0.0
+* Backend: 100% funcional
+* CI/CD: Implementado
+* Docker: Implementado
+* Deploy: Activo
+* Imágenes: Integración completa
+* Frontend: En construcción
+* Arquitectura: Profesional y escalable
 
 ------------------------------------------------------------
 👨‍💻 AUTOR
@@ -310,4 +409,5 @@ Jose Alberto Cabrejo Villar
 
 Técnico en Desarrollo de Software
 
-Proyecto Full Stack con enfoque profesional y escalable.
+Proyecto desarrollado con enfoque profesional,
+arquitectura escalable y prácticas modernas.
