@@ -1,6 +1,6 @@
-# 🏠 INMOBILIARIA-CQC
-
 [![Backend CI](https://github.com/JosKavi33/inmobiliaria-CQC/actions/workflows/ci.yml/badge.svg)](https://github.com/JosKavi33/inmobiliaria-CQC/actions)
+
+# 🏠 INMOBILIARIA-CQC
 
 Proyecto full stack profesional desarrollado con arquitectura desacoplada,
 seguridad JWT, manejo de imágenes con Supabase Storage, contenedorización con
@@ -190,7 +190,7 @@ Render:
 
 URL:
 
-https://inmobiliaria-cqc.onrender.com
+https://inmobiliaria-cqc.onrender.com/properties
 
 
 ------------------------------------------------------------
