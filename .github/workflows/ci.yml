@@ -21,6 +21,6 @@ jobs:
           java-version: '17'
           cache: maven
 
-      - name: Build and Test with Maven
+      - name: Build and Run Tests
         working-directory: property-service
-        run: mvn clean package -DskipTests
+        run: mvn clean verify

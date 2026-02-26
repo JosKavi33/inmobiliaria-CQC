@@ -1,10 +1,7 @@
 # 🏠 INMOBILIARIA-CQC
 
-<p align="center">
-  <a href="https://github.com/JosKavi33/inmobiliaria-CQC/actions">
-    <img src="https://github.com/JosKavi33/inmobiliaria-CQC/actions/workflows/ci.yml/badge.svg"/>
-  </a>
-</p>
+[![Backend CI](https://github.com/JosKavi33/inmobiliaria-CQC/actions/workflows/ci.yml/badge.svg)](https://github.com/JosKavi33/inmobiliaria-CQC/actions)
+
 Proyecto full stack profesional desarrollado con arquitectura desacoplada,
 seguridad JWT, manejo de imágenes con Supabase Storage, contenedorización con
 Docker, integración continua (CI/CD) y despliegue en la nube.
